@@ -1,10 +1,5 @@
 #!/bin/bash
-
-# Check to see if Homebrew is installed, and install it if it is not
-#command -v brew >/dev/null 2>&1 || { \
-#echo >&2 "Installing Homebrew Now"; \
-#/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"; \
-#}
+# Setup HD local dev based on Laravel Valet+
 
 echo 'Checking if Homebrew is installed'
 which -s brew
@@ -55,10 +50,12 @@ echo 'Creating ~/Sites to serve from'
 mkdir ~/Sites && cd ~/Sites && valet park > /dev/null 2>&1
 
 echo 'Emails can be seen at http://mailhog.test/'
-echo 'Any folder created in ~/Sites/ will be avilable at http://folder_name.test'
-echo 'In a folder run:'
-echo 'wp core download --locale=en_GB && wp config create --dbname=${PWD##*/} --dbuser=root --dbpass=root && wp db create --dbuser=root --dbpass=root && wp core install --url=${PWD##*/}.test --title=${PWD##*/} --admin_user=admin --admin_password=admin --admin_email=admin@${PWD##*/}.test'
-echo 'Then:'
+echo "Any folder created in ~/Sites/ will be avilable at http://folder_name.test, but wouldn't it be easier if..."
+echo '...Now you can run stage.sh to automate the cloning of a remote WP site to your machine'
+
+#echo 'In a folder run:'
+#echo 'wp core download --locale=en_GB && wp config create --dbname=${PWD##*/} --dbuser=root --dbpass=root && wp db create --dbuser=root --dbpass=root && wp core install --url=${PWD##*/}.test --title=${PWD##*/} --admin_user=admin --admin_password=admin --admin_email=admin@${PWD##*/}.test'
+#echo 'Then:'
  # mkdir grantham && cd grantham
  #
  # FULL SYNC
