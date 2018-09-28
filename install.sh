@@ -51,7 +51,8 @@ mkdir ~/Sites && cd ~/Sites && valet park > /dev/null 2>&1
 
 echo 'Emails can be seen at http://mailhog.test/'
 echo "Any folder created in ~/Sites/ will be avilable at http://folder_name.test, but wouldn't it be easier if..."
-echo '...Now you can run stage.sh to automate the cloning of a remote WP site to your machine'
+curl -o /usr/local/bin/clone.sh -fsSL https://raw.githubusercontent.com/helpful/local_dev/master/clone.sh ; chmod +x /usr/local/bin/clone.sh
+echo '...Now you can run clone.sh to automate the cloning of a remote WP site to your machine'
 
 #echo 'In a folder run:'
 #echo 'wp core download --locale=en_GB && wp config create --dbname=${PWD##*/} --dbuser=root --dbpass=root && wp db create --dbuser=root --dbpass=root && wp core install --url=${PWD##*/}.test --title=${PWD##*/} --admin_user=admin --admin_password=admin --admin_email=admin@${PWD##*/}.test'
