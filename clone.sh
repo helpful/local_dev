@@ -17,6 +17,9 @@ read -p "[-] enter remote site folder name, e.g. helpfultechnology.com : " remot
 read -p "[-] enter new local site folder name (no tld, it will be xxx.test), e.g. helpfultechnology : " local_site
 local_site_path="${HOME}/Sites/${local_site}"
 
+# Add identity to agent otherwise this will get really annoying...
+echo -n "[-] " ; ssh-add
+
 echo
 
 # Get remote site url as test everything's ok.
