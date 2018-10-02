@@ -49,7 +49,7 @@ rsync -avz ${remote_server}:/var/www/${remote_site}/wp-content ./ > /dev/null 2>
 ssh ${remote_server} "cd /var/www/${remote_site} && wp search-replace '${remote_site_url}' 'http://${local_site}.test' --all-tables --export --skip-plugins --skip-themes 2> /dev/null" | wp db import --skip-plugins --skip-themes - > /dev/null 2>&1
 # Update database prefix, in case not wp_.
 remote_site_prefix=$(ssh ${remote_server} "cd /var/www/${remote_site} 2> /dev/null && wp config get table_prefix 2> /dev/null") ;
-wp config set table_prefix ${remote_site_prefix}
+wp config set table_prefix ${remote_site_prefix} > /dev/null 2>&1
 # Deactivate problematic plugins.
 wp plugin deactivate wppusher 2&> /dev/null && wp plugin deactivate wp-super-cache 2&> /dev/null && wp plugin deactivate w3-total-cache 2&> /dev/null && wp plugin deactivate autoptimize 2&> /dev/null && wp plugin deactivate cloudflare 2&> /dev/null && wp plugin deactivate google-captcha 2&> /dev/null && wp plugin deactivate better-wp-security 2&> /dev/null
 # Create temp admin user
