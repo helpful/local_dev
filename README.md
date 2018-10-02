@@ -10,4 +10,4 @@ These scripts will setup a [Laravel Valet+](https://github.com/weprovide/valet-p
 This will install the dev environment, and make the script `clone.sh` available. Running `clone.sh` will prompt for a few options, then copy the remote site into `~/Sites/xxx` and open your browser to http://xxx.test to view it.
 
 ## Updating
-If you want to update `clone.sh`, you can run `curl -o /usr/local/bin/clone.sh -fsSL https://raw.githubusercontent.com/helpful/local_dev/master/stage.sh ; chmod +x /usr/local/bin/clone.sh`
+If you want to update `clone.sh`, you can run `curl -o /usr/local/bin/clone.sh -fsSL https://raw.githubusercontent.com/helpful/local_dev/master/clone.sh ; chmod +x /usr/local/bin/clone.sh`
