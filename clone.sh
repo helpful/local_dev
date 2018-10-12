@@ -12,7 +12,11 @@ ping -c 1 ${remote_server} &>/dev/null \
   || { ping -c 1 ${remote_server}.helpful.im &>/dev/null && remote_server=${remote_server}.helpful.im ; } \
   || { echo -e "\n[${RED}x${NC}] ${RED}Host '${remote_server}' does not ping, exiting...${NC}\n" ; exit 1 ; }
 
-read -p "[-] enter remote site folder name, e.g. helpfultechnology.com : " remote_site
+#read -p "[-] enter remote site folder name, e.g. helpfultechnology.com : " remote_site
+possible_sites=$(ssh ${remote_server} 'cd /var/www/ ; find ./* -depth -maxdepth 4 -path "*wp-includes/version.php" | sed -e "s#\./\(.*\)/wp-includes/version.php#\1#" ')
+PS3="[-] choose remote site : "
+select chosen_site in "${possible_sites[@]}" ; do remote_site=${chosen_site} ; break; done ;
+echo "${remote_site} chosen" ;
 
 read -p "[-] enter new local site folder name (no tld, it will be xxx.test), e.g. helpfultechnology : " local_site
 local_site_path="${HOME}/Sites/${local_site}"
