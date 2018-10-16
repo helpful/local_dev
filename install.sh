@@ -1,6 +1,6 @@
 #!/bin/bash
 # Setup HD local dev based on Laravel Valet+
-# v1.1.0
+# v1.1.1
 
 
 bold=$(tput bold)
@@ -9,6 +9,7 @@ normal=$(tput sgr0)
 
 ## Safety first.
 
+echo # Spacer.
 echo "[install.sh] You are about to deploy a Mac local development environment."
 echo "[install.sh] There are no prompts after this and very little error handling, so pay attention to the output."
 read -p "[install.sh] ${bold}Are you sure you want to install?${normal} (y to continue)" -n 1 -r
@@ -16,6 +17,7 @@ echo # Spacer.
 if [[ ! $REPLY =~ ^[Yy]$ ]]
 then
     echo "[install.sh] ${bold}Aborted by user. Bye.${normal}."
+    echo # Spacer.
     exit 1
 fi
 echo "[install.sh] There's going to be a lot of output from here... You may be prompted for your password, and to 'Allow' a firewall warning."
