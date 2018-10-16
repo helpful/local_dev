@@ -1,72 +1,84 @@
 #!/bin/bash
 # Setup HD local dev based on Laravel Valet+
+# v1.1.0
 
-echo 'Checking if Homebrew is installed'
+
+bold=$(tput bold)
+normal=$(tput sgr0)
+
+
+## Safety first.
+
+echo "[install.sh] You are about to deploy a Mac local development environment."
+echo "[install.sh] There are no prompts after this and very little error handling, so pay attention to the output."
+read -p "[install.sh] ${bold}Are you sure you want to install?${normal} (y to continue)" -n 1 -r
+echo # Spacer.
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    echo "[install.sh] ${bold}Aborted by user. Bye.${normal}."
+    exit 1
+fi
+echo "[install.sh] There's going to be a lot of output from here... You may be prompted for your password, and to 'Allow' a firewall warning."
+echo # Spacer.
+
+
+## Prerequisites.
+
+echo "[install.sh] Installing Homebrew if not available."
 which -s brew
 if [[ $? != 0 ]] ; then
-    echo 'Installing Homebrew'
     /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 else
-    echo 'Updating Homebrew'
+    echo "[install.sh] Updating Homebrew."
     brew update
 fi
 
-
-## Toolchain
-
-# *I think the homebrew install script shoudl take care of this*
-#echo 'Installing xcode commandline tools'
-#xcode-select --install > /dev/null 2>&1
-
-echo 'Installing Git if not available'
+echo "[install.sh] Installing Git if not available."
 which -s git || brew install git
 
-echo 'Checking if PHP 7.1 is installed'
+echo "[install.sh] Installing PHP if not available."
 if ! brew ls --versions php@7.1 > /dev/null; then
-  echo "Installing PHP 7.1"
+  echo "Installing PHP 7.1."
   brew install php@7.1
 fi
 
-## Composer
-echo 'Installing Composer if not available'
+echo "[install.sh] Installing Composer if not available."
 which -s composer || brew install composer
 
-# Finally install Valet+
+echo "[install.sh] Adding Composer to shell PATH."
+[[ ":$PATH:" != *":$HOME/.composer/vendor/bin:"* ]] && PATH="${PATH}:$HOME/.composer/vendor/bin"
+
+
+## Main event.
+
+# Deploy Valet+.
 if ! composer global show weprovide/valet-plus > /dev/null 2>&1; then
-  echo 'Installing Valet+'
+  echo "[install.sh] Deploying Valet+."
   composer global require weprovide/valet-plus
 fi
 
-echo 'Adding composer to shell PATH'
-[[ ":$PATH:" != *":$HOME/.composer/vendor/bin:"* ]] && PATH="${PATH}:$HOME/.composer/vendor/bin"
-
-echo 'Running Valet+ pre-launch checks'
+echo "[install.sh] Running Valet+ pre-launch checks."
 valet fix
-echo 'Running Valet+'
-echo "- - There's going to be a lot of output... Remember to 'Allow' any firewall warnings"
+echo "[install.sh] Running Valet+ install."
 valet install --with-mariadb
+# Move to 7.2 - :( has to be done after install using 7.1.
+valet use 7.2
 
-echo 'Creating ~/Sites to serve from'
-mkdir ~/Sites && cd ~/Sites && valet park > /dev/null 2>&1
+# Setup Valet+ sites.
+echo "[install.sh] Creating ~/Sites to serve from."
+sites_dir="${HOME}/Sites"
+if [[ -d "${sites_dir}" ]] ; then
+  echo "[install.sh] ${bold}~/Sites already exists but is presumed available. I am cautious so you will need to manually run 'valet park' in that folder if you are happy to use it. If not, run it in another directory, but you will have to modify clone.sh to match.${normal}"
+else
+  mkdir ${HOME}/Sites && cd ${HOME}/Sites && valet park > /dev/null 2>&1
+fi
 
-echo 'Emails can be seen at http://mailhog.test/'
+
+## Happy days.
+
+echo "Emails will be caught and can be seen at http://mailhog.test/."
 echo "Any folder created in ~/Sites/ will be avilable at http://folder_name.test, but wouldn't it be easier if..."
+# Icing on the cake - install clone.sh.
 curl -o /usr/local/bin/clone.sh -fsSL https://raw.githubusercontent.com/helpful/local_dev/master/clone.sh ; chmod +x /usr/local/bin/clone.sh
-echo '...Now you can run clone.sh to automate the cloning of a remote WP site to your machine'
-
-#echo 'In a folder run:'
-#echo 'wp core download --locale=en_GB && wp config create --dbname=${PWD##*/} --dbuser=root --dbpass=root && wp db create --dbuser=root --dbpass=root && wp core install --url=${PWD##*/}.test --title=${PWD##*/} --admin_user=admin --admin_password=admin --admin_email=admin@${PWD##*/}.test'
-#echo 'Then:'
- # mkdir grantham && cd grantham
- #
- # FULL SYNC
- # ssh petunia "cd /var/www/grantham2017.helpful.ws && wp search-replace 'grantham2017.helpful.ws' 'grantham.test' --all-tables --export "" | wp db import -
- # rsync -avz petunia:/var/www/grantham2017.helpful.ws/wp-content ./
- #
- # IF NOT SYNCING UPLOADS
- # # ssh petunia "cd /var/www/grantham2017.helpful.ws && wp search-replace 'grantham2017\.helpful\.ws(?:\/wp-content\/uploads)' 'grantham\.test' --regex --all-tables --export " | wp db import -
- # # rsync -avz petunia:/var/www/grantham2017.helpful.ws/wp-content/themes ./wp-content/ && rsync -avz petunia:/var/www/grantham2017.helpful.ws/wp-content/plugins ./wp-content/
- # valet secure
- # try_prod='location ~* \.(png|jpe?g|gif|ico)$ {expires 24h;log_not_found off;try_files $uri $uri/ @production;}location @production {resolver 8.8.8.8;proxy_pass http://grantham2017.helpful.ws/$uri;}'; sed -i -e "s#error_page#${try_prod}error_page#" ~/.valet/Nginx/grantham.test
- #
-
+echo "[install.sh] Installing clone.sh WP helper."
+echo "Now just run clone.sh to automate the cloning of a remote WP site to your machine."
