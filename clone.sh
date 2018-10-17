@@ -28,7 +28,7 @@ if [[ $? -ne 0 ]] ; then
     echo -e "\n[${RED}x${NC}] ${RED}Failed to add ssh identity, aborting...${NC}\n" ; exit 1
   fi
 else
-  echo -e "[${GREEN}\xE2\x9C\x94${NC}]  Identity added"
+  echo -e "[${GREEN}\xE2\x9C\x94${NC}] Identity added"
 fi
 
 possible_sites=($(ssh ${remote_server} 'cd /var/www/ ; find ./* -depth -maxdepth 4 -path "*wp-includes/version.php" | sed -e "s#\./\(.*\)/wp-includes/version.php#\1#" '))
