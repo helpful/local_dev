@@ -64,7 +64,7 @@ valet fix
 echo "[install.sh] Running Valet+ install."
 valet install --with-mariadb
 # Move to 7.2 - :( has to be done after install using 7.1.
-valet use 7.2
+#valet use 7.2
 
 # Setup Valet+ sites.
 echo "[install.sh] Creating ~/Sites to serve from."
