@@ -7,8 +7,6 @@ These scripts will setup a [Laravel Valet+](https://github.com/weprovide/valet-p
 ## Install
 **After** you have looked at the source and are happy, install by running `bash -c "$( curl -fsSL https://raw.githubusercontent.com/helpful/local_dev/master/install.sh )"`
 
-**Warning** fresh installations on 10.14 (Mojave) currently require a workaround. Run the install as above, then [manually install the modules with pecl and modifiy php.ini as described here](https://github.com/weprovide/valet-plus/issues/275), then re-run the installation to ensure all steps complete successfully.
-
 This will install the dev environment, and make the script `clone.sh` available. Running `clone.sh` will prompt for a few options, then copy the remote site into `~/Sites/xxx` and open your browser to http://xxx.test to view it.
 
 ## Updating
