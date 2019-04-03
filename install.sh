@@ -1,6 +1,6 @@
 #!/bin/bash
 # Setup HD local dev based on Laravel Valet+
-# v1.1.2
+# v1.2.0
 
 
 bold=$(tput bold)
@@ -38,10 +38,13 @@ fi
 echo "[install.sh] Installing Git if not available."
 which -s git || brew install git
 
-echo "[install.sh] Installing PHP if not available."
-if ! brew ls --versions php@7.1 > /dev/null; then
-  echo "Installing PHP 7.1."
-  brew install php@7.1
+echo "[install.sh] Adding brew tap for Valet+ PHP versions."
+brew tap henkrehorst/php
+
+echo "[install.sh] Installing Valet+ version of PHP7.2 if not available."
+if ! brew ls --versions valet-php@7.2  > /dev/null; then
+  echo "Installing Valet+ version of PHP7.2."
+  brew install valet-php@7.2
 fi
 
 echo "[install.sh] Installing Composer if not available."
@@ -63,8 +66,6 @@ echo "[install.sh] Running Valet+ pre-launch checks."
 valet fix
 echo "[install.sh] Running Valet+ install."
 valet install --with-mariadb
-# Move to 7.2 - :( has to be done after install using 7.1.
-#valet use 7.2
 
 # Setup Valet+ sites.
 echo "[install.sh] Creating ~/Sites to serve from."
