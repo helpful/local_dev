@@ -80,6 +80,9 @@ if [[ -d "${local_site_path}" ]] ; then
   done
   echo -e "[${GREEN}\xE2\x9C\x94${NC}] Selected: update ${update}"
 else
+  read -rp "[ ] Do you want to clone wp-content/uploads?  (y/n): " with_uploads
+  printf "\033[1A\r[%b\xE2\x9C\x94%b\n" "${GREEN}" "${NC}"
+
   # Create it.
   echo # Spacer.
   echo -n "[ ] Creating ${local_site_path}"
@@ -129,26 +132,38 @@ fi
 
 
 # Pull the live data in.
-echo -n "[ ] Pulling down data... (be patient)"
+echo "[ ] Pulling down data... (be patient)"
 # Pull wp-content.
 if [[ -z "$update" || "$update" == "all" || "$update" == "content" ]] ; then
-  rsync -az ${remote_server}:${VHOST_PATH}${remote_site}${WPCONTENT_PATH} ./ > /dev/null 2>&1
+  echo -n "[ ] ...wp-content"
+  if [ "${with_uploads}" == "y" ] ; then
+    rsync -az "${remote_server}:${VHOST_PATH}${remote_site}${WPCONTENT_PATH}" ./ &>/dev/null
+  else
+    rsync -az --exclude 'uploads' "${remote_server}:${VHOST_PATH}${remote_site}${WPCONTENT_PATH}" ./ &>/dev/null
+  fi
+  echo -e "\r[${GREEN}\xE2\x9C\x94${NC}"
 fi
 # Pull db and search-replace inline.
 if [[ -z "$update" || "$update" == "all" || "$update" == "database" ]] ; then
+  echo -n "[ ] ...database"
   # Update database prefix, in case not wp_.
-  remote_site_prefix=$(ssh ${remote_server} "cd ${VHOST_PATH}${remote_site}${WPCONTENT_PATH} 2> /dev/null && wp config get table_prefix 2> /dev/null")
-  wp config set table_prefix ${remote_site_prefix} > /dev/null 2>&1
+  remote_site_prefix=$(ssh "${remote_server}" "cd ${VHOST_PATH}${remote_site}${WPCONTENT_PATH} 2> /dev/null && wp config get table_prefix 2> /dev/null")
+  wp config set table_prefix "${remote_site_prefix}" &>/dev/null
   # Pull db + search/replace.
-  ssh ${remote_server} "cd ${VHOST_PATH}${remote_site}${WPCONTENT_PATH} && wp search-replace '${remote_site_url}' 'http://${local_site}.test' --all-tables --export --skip-plugins --skip-themes 2> /dev/null" | wp db import --skip-plugins --skip-themes - > /dev/null 2>&1
+  ssh "${remote_server}" "cd ${VHOST_PATH}${remote_site}${WPCONTENT_PATH} && wp search-replace '${remote_site_url}' 'https://${local_site}.test' --all-tables --export --skip-plugins --skip-themes 2> /dev/null" | wp db import --skip-plugins --skip-themes - &>/dev/null
+  echo -e "\r[${GREEN}\xE2\x9C\x94${NC}"
 
   # Deactivate problematic plugins.
   wp plugin deactivate wppusher 2&> /dev/null ; wp plugin deactivate wp-super-cache 2&> /dev/null ; wp plugin deactivate w3-total-cache 2&> /dev/null ; wp plugin deactivate autoptimize 2&> /dev/null ; wp plugin deactivate cloudflare 2&> /dev/null ; wp plugin deactivate google-captcha 2&> /dev/null ; wp plugin deactivate better-wp-security 2&> /dev/null
 
   # Create temp admin user (repeats install conf as live has been db pulled in).
-  wp user create admin admin@${local_site}.test --role=administrator --user_pass=admin > /dev/null 2>&1
+  wp user create admin admin@"${local_site}".test --role=administrator --user_pass=admin &>/dev/null
 fi
-echo -e "\r[${GREEN}\xE2\x9C\x94${NC}"
+if [[ -z "$update" || "$update" == "all" ]] ; then
+  printf "\033[3A\r[%b\xE2\x9C\x94%b\033[3B" "${GREEN}" "${NC}"
+else
+  printf "\033[3A\r[%b\xE2\x9C\x94%b\033[2B" "${GREEN}" "${NC}"
+fi
 
 
 # We are done.
