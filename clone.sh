@@ -17,18 +17,20 @@ GREEN='\x1B[0;32m'
 YELLOW='\x1B[0;33m'
 
 # Gather required vars.
-read -p "[ ] Enter remote server name, e.g. petunia : " remote_server
-ping -c 1 ${remote_server} &>/dev/null \
-  || { ping -c 1 ${remote_server}.${DOMAIN} &>/dev/null && remote_server=${remote_server}.${DOMAIN} ; } \
-  || { printf "\033[1A\r[${RED}x${NC}" ; echo -e "\n[${RED}x${NC}] ${RED}Host '${remote_server}' does not ping, aborting...${NC}\n" ; exit 1 ; }
-printf "\033[1A\r[${GREEN}\xE2\x9C\x94${NC}\n"
+read -rp "[ ] Enter remote server name, e.g. petunia : " remote_server
+ping -c 1 "${remote_server}" &>/dev/null \
+  || { ping -c 1 "${remote_server}".${DOMAIN} &>/dev/null && remote_server="${remote_server}".${DOMAIN} ; } \
+  || { printf "\033[1A\r[%bx%b" "${RED}" "${NC}" ; \
+    echo -e "\n[${RED}x${NC}] ${RED}Host '${remote_server}' does not ping, aborting...${NC}\n" ; \
+    exit 1 ; }
+printf "\033[1A\r[%b\xE2\x9C\x94%b\n" "${GREEN}" "${NC}"
 
 # Add identity to agent, if needed, otherwise this will get really annoying...
 ssh-add -l &>/dev/null
-if [[ $? -ne 0 ]] ; then
+if [[ $? -ne 0 ]] ; then # $? being used for check so ssh-add occurs in the same shell.
   echo -n "[-] " ;
   if ssh-add ; then
-    printf "\033[1A\r\033[K[${GREEN}\xE2\x9C\x94${NC}] Identity added\n"
+    printf "\033[1A\r\033[K[%b\xE2\x9C\x94%b] Identity added\n" "${GREEN}" "${NC}"
   else
     # Note: - not sure this will ever fire...
     echo -e "\n[${RED}x${NC}] ${RED}Failed to add ssh identity, aborting...${NC}\n" ; exit 1
@@ -37,18 +39,19 @@ else
   echo -e "[${GREEN}\xE2\x9C\x94${NC}] Identity added"
 fi
 
-possible_sites=($(ssh ${remote_server} 'cd '${VHOST_PATH}' ; find ./* -depth -maxdepth 4 -path "*wp-includes/version.php" | sed -e "s#\./\(.*\)/wp-includes/version.php#\1#" '))
+possible_sites=()
+while IFS='' read -r line; do possible_sites+=("$line"); done < <(ssh "${remote_server}" 'cd '${VHOST_PATH}' ; find ./* -depth -maxdepth 4 -path "*wp-includes/version.php" | sed -e "s#\./\(.*\)/wp-includes/version.php#\1#" ')
 PS3="[-] Choose remote site - enter the number from the list above, e.g. 1 : "
 select chosen_site in "${possible_sites[@]}" ; do remote_site=${chosen_site} ; break; done ;
 echo -e "[${GREEN}\xE2\x9C\x94${NC}] Selected: ${remote_site}" ;
 
-read -p "[ ] Enter new local site folder name (no tld, it will be xxx.test), e.g. local-dev-site : " local_site
-printf "\033[1A\r[${GREEN}\xE2\x9C\x94${NC}\n"
+read -rp "[ ] Enter new local site folder name (no tld, it will be xxx.test), e.g. local-dev-site : " local_site
+printf "\033[1A\r[%b\xE2\x9C\x94%b\n" "${GREEN}" "${NC}"
 local_site_path="${SITES_PATH}${local_site}"
 
 
 # Get remote site url as test that everything is ok.
-remote_site_url=$(ssh ${remote_server} "cd ${VHOST_PATH}${remote_site}${WPCONTENT_PATH} 2> /dev/null && wp option get siteurl --skip-plugins --skip-themes 2> /dev/null") ;
+remote_site_url=$(ssh "${remote_server}" "cd ${VHOST_PATH}${remote_site}${WPCONTENT_PATH} 2> /dev/null && wp option get siteurl --skip-plugins --skip-themes 2> /dev/null") ;
 if [[ -z "${remote_site_url}" ]] ; then
   echo -e "\n[${RED}x${NC}] ${RED}Could not retrive siteurl from remote. Check server and site/folder name and try again, aborting...${NC}\n" ; exit 1 ;
 fi
@@ -61,20 +64,20 @@ if [[ -d "${local_site_path}" ]] ; then
   PS3="[-] directory already exists - do you want to : "
   select dir_option in "${dir_options[@]}"
   do
-  	case $dir_option in
-  	  "abort")
+    case $dir_option in
+      "abort")
         echo -e "\n[${RED}x${NC}] ${RED}Aborting...${NC}\n" ; exit 1
         break ;;
-  	  "update all")
+      "update all")
         update="all"
         break ;;
-  	  "update wp-content")
+      "update wp-content")
         update="content"
         break ;;
-  	  "update database")
+      "update database")
         update="database"
         break ;;
-  	  *)
+      *)
         echo "Choose a valid option" ;;
     esac
   done
@@ -86,19 +89,19 @@ else
   # Create it.
   echo # Spacer.
   echo -n "[ ] Creating ${local_site_path}"
-  mkdir $local_site_path
+  mkdir "$local_site_path"
   echo -e "\r[${GREEN}\xE2\x9C\x94${NC}"
 fi
 
 
 # Move to host directory.
-cd $local_site_path
+cd "$local_site_path" || { echo -e "\n[${RED}x${NC}] ${RED}Could not move to '${local_site_path}', aborting...${NC}\n" ; exit 1 ; }
 
 
 # Setup clean local WP install.
 if [[ -z "$update" ]] ; then
   echo -n "[ ] Deploying WordPress..."
-  wp core download --locale=en_GB > /dev/null 2>&1 && wp config create --dbname=${PWD##*/} --dbuser=root --dbpass=root > /dev/null 2>&1 && wp db create --dbuser=root --dbpass=root > /dev/null 2>&1 && wp core install --url=${PWD##*/}.test --title=${PWD##*/} --admin_user=admin --admin_password=admin --admin_email=admin@${PWD##*/}.test > /dev/null 2>&1
+  wp core download --locale=en_GB &>/dev/null && wp config create --dbname="${PWD##*/}" --dbuser=root --dbpass=root &>/dev/null && wp db create --dbuser=root --dbpass=root &>/dev/null && wp core install --url="${PWD##*/}".test --title="${PWD##*/}" --admin_user=admin --admin_password=admin --admin_email=admin@"${PWD##*/}".test &>/dev/null
   echo -e "\r[${GREEN}\xE2\x9C\x94${NC}"
 
   # Deploy SSL.
