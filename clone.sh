@@ -97,6 +97,34 @@ if [[ -z "$update" ]] ; then
   echo -n "[ ] Deploying WordPress..."
   wp core download --locale=en_GB > /dev/null 2>&1 && wp config create --dbname=${PWD##*/} --dbuser=root --dbpass=root > /dev/null 2>&1 && wp db create --dbuser=root --dbpass=root > /dev/null 2>&1 && wp core install --url=${PWD##*/}.test --title=${PWD##*/} --admin_user=admin --admin_password=admin --admin_email=admin@${PWD##*/}.test > /dev/null 2>&1
   echo -e "\r[${GREEN}\xE2\x9C\x94${NC}"
+
+  # Deploy SSL.
+  echo -n "[ ] Securing... ";
+  valet secure &>/dev/null
+  # Get the nginx config, split, and rebuild with 'try remote' block.
+  nginx_config_file="${HOME}"/.valet/Nginx/${local_site}.test
+  nginx_config=$(cat "$nginx_config_file")
+  before=${nginx_config%error_page*}
+  after=${nginx_config#"$before"*}
+  echo "$before" > "$nginx_config_file"
+  cat >> "$nginx_config_file" <<EOF
+    location ~* .(png|jpe?g|gif|ico|svg|doc?x|xls?x|pdf?x|ppt?x)$ {
+        expires 24h;
+        log_not_found off;
+        root '${local_site_path}';
+        if (-f \$request_filename) {
+            break;
+        }
+        try_files \$uri \$uri/ @production;
+    }
+    location @production {
+        resolver 8.8.8.8;
+        proxy_pass ${remote_site_url}/\$uri;
+    }
+EOF
+  echo "    $after" >> "$nginx_config_file"
+  sudo nginx -s reload || { printf "\033[1A\r[%bx%b\n" "${RED}" "${NC}"; echo -e "\n[${RED}x${NC}] ${RED}Problem with Nginx config for '${local_site_path}', aborting...${NC}\n" ; exit 1 ; }
+  printf "\033[1A\r[%b\xE2\x9C\x94%b\n" "${GREEN}" "${NC}"
 fi
 
 
