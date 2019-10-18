@@ -60,7 +60,7 @@ fi
 # Create host directory.
 if [[ -d "${local_site_path}" ]] ; then
   # Exists, prompt for action.
-  dir_options=( 'abort' 'update all' 'update wp-content' 'update database' )
+  dir_options=( 'abort' 'update all' 'update wp-content' 'update database' 'delete and start again' )
   PS3="[-] directory already exists - do you want to : "
   select dir_option in "${dir_options[@]}"
   do
@@ -76,6 +76,9 @@ if [[ -d "${local_site_path}" ]] ; then
         break ;;
       "update database")
         update="database"
+        break ;;
+      "delete and start again")
+        update="overwrite"
         break ;;
       *)
         echo "Choose a valid option" ;;
@@ -96,6 +99,15 @@ fi
 
 # Move to host directory.
 cd "$local_site_path" || { echo -e "\n[${RED}x${NC}] ${RED}Could not move to '${local_site_path}', aborting...${NC}\n" ; exit 1 ; }
+
+
+# Nuke and pave if overwrite selected.
+if [[ "$update" == "overwrite" ]] ; then
+  wp db drop --yes &>/dev/null
+  rm -rf ${local_site_path}/*
+  rm -f "${HOME}"/.valet/Nginx/${local_site}.test
+  unset update
+fi
 
 
 # Setup clean local WP install.
