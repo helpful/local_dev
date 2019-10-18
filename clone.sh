@@ -85,6 +85,13 @@ if [[ -d "${local_site_path}" ]] ; then
     esac
   done
   echo -e "[${GREEN}\xE2\x9C\x94${NC}] Selected: update ${update}"
+  if [[ "$update" == "all" || "$update" == "content" ]] ; then
+    read -rp "[ ] Do you want to clone wp-content/themes?  (y/n): " with_themes
+    printf "\033[1A\r[%b\xE2\x9C\x94%b\n" "${GREEN}" "${NC}"
+  elif [[ "$update" == "overwrite" ]] ; then
+    read -rp "[ ] Do you want to clone wp-content/uploads?  (y/n): " with_uploads
+    printf "\033[1A\r[%b\xE2\x9C\x94%b\n" "${GREEN}" "${NC}"
+  fi
 else
   read -rp "[ ] Do you want to clone wp-content/uploads?  (y/n): " with_uploads
   printf "\033[1A\r[%b\xE2\x9C\x94%b\n" "${GREEN}" "${NC}"
@@ -151,11 +158,17 @@ echo "[ ] Pulling down data... (be patient)"
 # Pull wp-content.
 if [[ -z "$update" || "$update" == "all" || "$update" == "content" ]] ; then
   echo -n "[ ] ...wp-content"
-  if [ "${with_uploads}" == "y" ] ; then
-    rsync -az "${remote_server}:${VHOST_PATH}${remote_site}${WPCONTENT_PATH}" ./ &>/dev/null
-  else
-    rsync -az --exclude 'uploads' "${remote_server}:${VHOST_PATH}${remote_site}${WPCONTENT_PATH}" ./ &>/dev/null
+  exclude_uploads=''
+  if [ "${with_uploads}" == "n" ] ; then
+    exclude_uploads='--exclude uploads'
   fi
+  exclude_themes=''
+  if [ "${with_themes}" == "n" ] ; then
+    exclude_themes='--exclude themes'
+  fi
+  # NOTE: K rsync flag will make files go into symlinked dir - e.g update symlinked dir rather than delete symlink and create real dir.
+  # Prob. undesirable so not used atm.
+  rsync -az ${exclude_uploads} ${exclude_themes} "${remote_server}:${VHOST_PATH}${remote_site}${WPCONTENT_PATH}" ./ &>/dev/null
   echo -e "\r[${GREEN}\xE2\x9C\x94${NC}"
 fi
 # Pull db and search-replace inline.
