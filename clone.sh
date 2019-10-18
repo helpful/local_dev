@@ -211,3 +211,5 @@ sleep 3 ; valet open
 # - valet share (puts url in clipboard for public access to site as long as process running; ctrl+c to stop)
 # - valet db import <filename>.sql(.gz) <name> (guesses db name from git settings or folder name)
 # - wp db import <filename> (uses db name from wp-config.php)
+# - Delete a site, it's config, db, and folder: (replace sitename with the folder name in ~/Sites)
+# - - site='sitename' ; cd ~/Sites/${site} && wp db drop --yes &>/dev/null ; cd ~/Sites/ && rm -rf ${site} ; rm -f ~/.valet/Nginx/${site}.test
