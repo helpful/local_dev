@@ -16,6 +16,29 @@ RED='\x1B[0;31m'
 GREEN='\x1B[0;32m'
 YELLOW='\x1B[0;33m'
 
+# Handle delete argument for cleaning up.
+if [ $# -ge 1 ]
+then
+    if [ "$1" != "delete" ]; then
+        echo 'Either run this script with no arguments to clone, or "delete" to choose a local site to remove' ; exit 1
+    else	
+	possible_sites=()
+        while IFS='' read -r line; do possible_sites+=("$line"); done < <(ls "${SITES_PATH}")
+        PS3="[-] Choose a local site to delete - enter the number from the list above, e.g. 1 : "
+        select chosen_site in "${possible_sites[@]}" ; do local_site=${chosen_site} ; break; done ;
+        echo -e "[${GREEN}\xE2\x9C\x94${NC}] Selected: ${local_site}" ;
+        read -rp "[ ] Are you ready to permenantly delete ${SITES_PATH}${local_site} as well as any related dB and config?  (y/n): " delete_it
+        if [ "${delete_it}" == "y" ] ; then
+            #TODO: functionise this for reuse.
+            cd ${SITES_PATH}${local_site} ; wp db drop --yes &>/dev/null ; rm -rf ${SITES_PATH}${local_site} ; rm -f "${HOME}"/.valet/Nginx/${local_site}.test
+            printf "\033[1A\r[%b\xE2\x9C\x94%b\n" "${GREEN}" "${NC}"
+            echo -e "[${GREEN}\xE2\x9C\x94${NC}] It is done" ;
+            exit
+        fi
+
+    fi
+fi
+
 # Gather required vars.
 read -rp "[ ] Enter remote server name, e.g. petunia : " remote_server
 ping -c 1 "${remote_server}" &>/dev/null \
