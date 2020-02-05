@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 # Setup HD local dev based on Laravel Valet+
-# v1.2.0
+# v1.2.1
 
 
 bold=$(tput bold)
