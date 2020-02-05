@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 #
 # clone.sh
 # Pull a remote WordPress site to a Laravel Valet based local staging site.
