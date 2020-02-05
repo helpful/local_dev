@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
 # Setup HD local dev based on Laravel Valet+
 # v1.2.1
 

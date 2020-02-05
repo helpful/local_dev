@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
 #
 # clone.sh
 # Pull a remote WordPress site to a Laravel Valet based local staging site.
@@ -21,7 +21,7 @@ if [ $# -ge 1 ]
 then
     if [ "$1" != "delete" ]; then
         echo 'Either run this script with no arguments to clone, or "delete" to choose a local site to remove' ; exit 1
-    else	
+    else
 	possible_sites=()
         while IFS='' read -r line; do possible_sites+=("$line"); done < <(ls "${SITES_PATH}")
         PS3="[-] Choose a local site to delete - enter the number from the list above, e.g. 1 : "
