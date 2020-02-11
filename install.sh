@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Setup HD local dev based on Laravel Valet+
-# v1.2.1
+# Setup HD local dev based on Laravel Valet+ v2x
+# Tested against Mac OS 10.15 (Catalina)
+# v1.3.0
 
 
 bold=$(tput bold)
@@ -46,12 +47,17 @@ if ! brew ls --versions valet-php@7.2  > /dev/null; then
   echo "Installing Valet+ version of PHP7.2."
   brew install valet-php@7.2
 fi
+brew link valet-php@7.2 --force
 
 echo "[install.sh] Installing Composer if not available."
 which -s composer || brew install composer
 
-echo "[install.sh] Adding Composer to shell PATH."
+echo "[install.sh] Adding Composer to running PATH."
 [[ ":$PATH:" != *":$HOME/.composer/vendor/bin:"* ]] && PATH="${PATH}:$HOME/.composer/vendor/bin"
+
+# BUG/TODO: this needs some love / doing properly.
+echo "[install.sh] Adding Composer to shell PATH."
+[[ ":$PATH:" != *":$HOME/.composer/vendor/bin:"* ]] && echo 'export PATH="$PATH:$HOME/.composer/vendor/bin"' >> ~/.zshrc && echo 'export PATH="$PATH:$HOME/.composer/vendor/bin"' >> ~/.bash_profile
 
 
 ## Main event.
@@ -59,13 +65,21 @@ echo "[install.sh] Adding Composer to shell PATH."
 # Deploy Valet+.
 if ! composer global show weprovide/valet-plus > /dev/null 2>&1; then
   echo "[install.sh] Deploying Valet+."
-  composer global require weprovide/valet-plus
+  composer global require weprovide/valet-plus "^2.0-dev"
+  # Temp hack until fixed upstream. 20200210.
+  #sudo sed -i '' 's/-C -q/-C -n -q/' /usr/local/Cellar/valet-php@7.2/7.2.24_2/bin/pecl
+  [ ! -f /usr/local/etc/openssl/cert.pem ] && ( sudo mkdir -p /usr/local/etc/openssl/ && sudo curl -o /usr/local/etc/openssl/cert.pem https://curl.haxx.se/ca/cacert-2020-01-01.pem )
+  # Temp hack until fixed upstream. 20200210.
+  sudo sed -i '' 's/mysqladmin -u root/sudo mysqladmin -u root/' ~/.composer/vendor/weprovide/valet-plus/cli/Valet/Mysql.php
 fi
 
-echo "[install.sh] Running Valet+ pre-launch checks."
-valet fix
+#echo "[install.sh] Running Valet+ pre-launch checks."
+# valet fix # Currently breaks things 20200211.
 echo "[install.sh] Running Valet+ install."
 valet install --with-mariadb
+
+# Temp hack until fixed upstream. 20200210.
+[ ! -f /usr/local/etc/nginx/valet/elasticsearch.conf ] && sudo touch /usr/local/etc/nginx/valet/elasticsearch.conf
 
 # Setup Valet+ sites.
 echo "[install.sh] Creating ~/Sites to serve from."
