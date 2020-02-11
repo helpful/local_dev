@@ -22,7 +22,7 @@ then
     if [ "$1" != "delete" ]; then
         echo 'Either run this script with no arguments to clone, or "delete" to choose a local site to remove' ; exit 1
     else
-	possible_sites=()
+        possible_sites=()
         while IFS='' read -r line; do possible_sites+=("$line"); done < <(ls "${SITES_PATH}")
         PS3="[-] Choose a local site to delete - enter the number from the list above, e.g. 1 : "
         select chosen_site in "${possible_sites[@]}" ; do local_site=${chosen_site} ; break; done ;
