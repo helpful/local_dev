@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Setup HD local dev based on Laravel Valet+ v2x
 # Tested against Mac OS 10.15 (Catalina)
-# v1.3.0
+# v1.3.1
 
 
 bold=$(tput bold)
@@ -70,7 +70,7 @@ if ! composer global show weprovide/valet-plus > /dev/null 2>&1; then
   #sudo sed -i '' 's/-C -q/-C -n -q/' /usr/local/Cellar/valet-php@7.2/7.2.24_2/bin/pecl
   [ ! -f /usr/local/etc/openssl/cert.pem ] && ( sudo mkdir -p /usr/local/etc/openssl/ && sudo curl -o /usr/local/etc/openssl/cert.pem https://curl.haxx.se/ca/cacert-2020-01-01.pem )
   # Temp hack until fixed upstream. 20200210.
-  sudo sed -i '' 's/mysqladmin -u root/sudo mysqladmin -u root/' ~/.composer/vendor/weprovide/valet-plus/cli/Valet/Mysql.php
+  sudo sed -i '' 's/mysqladmin -u root --password='"'"'".$oldPwd."'"'"' password/sudo mysqladmin -u root password/' ~/.composer/vendor/weprovide/valet-plus/cli/Valet/Mysql.php
 fi
 
 #echo "[install.sh] Running Valet+ pre-launch checks."
