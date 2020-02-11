@@ -9,6 +9,11 @@ These scripts will setup a [Laravel Valet+](https://github.com/weprovide/valet-p
 
 This will install the dev environment, and make the script `clone.sh` available.
 
+### Install problems
+- Composer error - conflicting symfony/console versions: resolve with `composer global require symfony/console "3.x" symfony/process "3.x"`, then re-run the install.
+- - If this conflicts with other packages you might need to look at using consolidatino/cgr package to manage conflicts: https://github.com/weprovide/valet-plus/issues/318#issuecomment-473212202
+- "Setting password for root user failed." warning: run `sudo mysqladmin -uroot password 'root'`
+
 ## Usage
 Running `clone.sh` will prompt for a few options, then copy the remote site into `~/Sites/xxx` and open your browser to https://xxx.test to view it. It also accepts a single argument `delete` which will attempt to cleanly remove local sites when you're finished with them.
 
