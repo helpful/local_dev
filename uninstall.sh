@@ -70,7 +70,6 @@ then
 fi
 
 brew cleanup
-brew prune
 brew doctor
 
 sudo rm -rf ~/.valet
