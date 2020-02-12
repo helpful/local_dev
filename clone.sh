@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-#
-# clone.sh
 # Pull a remote WordPress site to a Laravel Valet based local staging site.
-#
+# Tested against Mac OS 10.15 (Catalina)
+# v1.1.1
 
 # Config vars.
 DOMAIN='helpful.im' # Check this domain if entered server name doesn't ping on it's own.
@@ -27,6 +26,10 @@ then
         PS3="[-] Choose a local site to delete - enter the number from the list above, e.g. 1 : "
         select chosen_site in "${possible_sites[@]}" ; do local_site=${chosen_site} ; break; done ;
         echo -e "[${GREEN}\xE2\x9C\x94${NC}] Selected: ${local_site}" ;
+        if [[ ! -d ${SITES_PATH}${local_site} ]] || [[ "${SITES_PATH}${local_site}" == "${SITES_PATH}" ]] ; then
+          echo -e "\n[${RED}x${NC}] ${RED}Invalid Sites sub-folder selected, aborting...${NC}\n" ;
+          exit 1
+        fi
         read -rp "[ ] Are you ready to permenantly delete ${SITES_PATH}${local_site} as well as any related dB and config?  (y/n): " delete_it
         if [ "${delete_it}" == "y" ] ; then
             #TODO: functionise this for reuse.
@@ -143,7 +146,21 @@ fi
 # Setup clean local WP install.
 if [[ -z "$update" ]] ; then
   echo -n "[ ] Deploying WordPress..."
-  wp core download --locale=en_GB &>/dev/null && wp config create --dbname="${PWD##*/}" --dbuser=root --dbpass=root &>/dev/null && wp db create --dbuser=root --dbpass=root &>/dev/null && wp core install --url="${PWD##*/}".test --title="${PWD##*/}" --admin_user=admin --admin_password=admin --admin_email=admin@"${PWD##*/}".test &>/dev/null
+  wp core download --locale=en_GB &>/dev/null
+  {
+    wp config create --dbname="${PWD##*/}" --dbuser=root --dbpass=root --extra-php <<'PHP'
+/** WP_DEBUG setup **/
+define( 'WP_DEBUG', true );
+if ( WP_DEBUG ) {
+  define( 'WP_DEBUG_LOG', true );
+  define( 'SCRIPT_DEBUG', true );
+  define( 'WP_DEBUG_DISPLAY', false );
+  @ini_set( 'display_errors', 0 );
+}
+PHP
+ } &>/dev/null
+  wp db create --dbuser=root --dbpass=root &>/dev/null
+  wp core install --url="${PWD##*/}".test --title="${PWD##*/}" --admin_user=admin --admin_password=admin --admin_email=admin@"${PWD##*/}".test &>/dev/null
   echo -e "\r[${GREEN}\xE2\x9C\x94${NC}"
 
   # Deploy SSL.
