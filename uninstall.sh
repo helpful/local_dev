@@ -55,6 +55,8 @@ brew services stop --all
 brew uninstall dnsmasq
 brew uninstall nginx
 brew uninstall php
+brew uninstall php@7.1
+brew uninstall php@7.2
 brew uninstall valet-php@7.1
 brew uninstall valet-php@7.2
 brew uninstall mailhog
